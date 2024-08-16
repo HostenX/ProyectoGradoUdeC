@@ -1,42 +1,62 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Tilemaps;
 
 public class Movement : MonoBehaviour
 {
 	public float speed;
+	public Animator animator;
 
-    public Animator animator;
-    //Get input
+	private bool isFlipped = false; // Track the flip state
 
-    private void Update()
-    {
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
+	private void Update()
+	{
+		// Get input
+		float horizontal = Input.GetAxisRaw("Horizontal");
+		float vertical = Input.GetAxisRaw("Vertical");
 
-       Vector3 direction = new Vector3(horizontal, vertical).normalized;
+		// Create direction vector
+		Vector2 direction = new Vector2(horizontal, vertical).normalized;
 
-        AnimateMovement(direction);
+		// Animate player
+		AnimateMovement(direction);
 
-        transform.position += direction * speed *Time.deltaTime;
-    }
-    //apply movement
+		// Apply movement
+		transform.position += new Vector3(direction.x, direction.y, 0f) * speed * Time.deltaTime;
+	}
 
-    void AnimateMovement(Vector3 direction) {
-        if (animator != null) {
-
-            if (direction.magnitude > 0)
-            {
-                animator.SetBool("isMoving", true);
-
-                animator.SetFloat("horizontal", direction.x);
+	void AnimateMovement(Vector2 direction)
+	{
+		if (animator != null)
+		{
+			if (direction.magnitude > 0)
+			{
+				animator.SetBool("isMoving", true);
+				animator.SetFloat("horizontal", direction.x);
 				animator.SetFloat("vertical", direction.y);
+
+				// Control animation speed based on the player's speed
+				animator.speed = speed;
+
+				// Rotate Animation - only when moving horizontally
+				if (direction.x != 0)
+				{
+					bool shouldFlip = direction.x < 0;
+
+					// Flip only when the direction has changed
+					if (shouldFlip != isFlipped)
+					{
+						transform.rotation = Quaternion.Euler(new Vector3(0f, shouldFlip ? 180f : 0f, 0f));
+						isFlipped = shouldFlip;
+					}
+				}
 			}
-            else
-            {
+			else
+			{
 				animator.SetBool("isMoving", false);
+				// Set animation speed back to 1 (default) when not moving
+				animator.speed = 1;
 			}
-        }
-    }
+		}
+	}
 }
