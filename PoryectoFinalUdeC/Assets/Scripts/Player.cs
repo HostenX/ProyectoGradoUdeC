@@ -1,9 +1,6 @@
-using System;
-using System.IO;
+using System.Collections;
 using UnityEngine;
-using Newtonsoft.Json;
-using System.Collections.Generic;
-using System.Xml;
+using UnityEngine.Networking;
 
 public class Player : MonoBehaviour
 {
@@ -11,6 +8,10 @@ public class Player : MonoBehaviour
     public Animator animator;
 
     private bool isFlipped = false; // Track the flip state
+    private string colorApiUrl = "http://localhost:5238/api/color"; // URL de la API para obtener color
+    private string interactionApiUrl = "http://localhost:5238/api/interaction"; // URL de la API para registrar interacciones
+
+    private InteractableObject currentInteractable; // Variable para guardar el objeto interactuable actual
 
     private void Update()
     {
@@ -42,16 +43,64 @@ public class Player : MonoBehaviour
 
         if (hit.collider != null && hit.collider.CompareTag("Interactable"))
         {
-            InteractableObject interactable = hit.collider.GetComponent<InteractableObject>();
+            currentInteractable = hit.collider.GetComponent<InteractableObject>();
 
-            if (interactable != null)
+            if (currentInteractable != null)
             {
-                interactable.Interact();
+                // Obtener el color desde la API y pasarlo al objeto interactuable
+                StartCoroutine(GetColorFromApi());
+
+                // Registrar la interacci�n
+                StartCoroutine(RegisterInteraction());
             }
         }
     }
 
+    // M�todo para obtener el color desde la API y pasarlo al objeto interactuable
+    IEnumerator GetColorFromApi()
+    {
+        UnityWebRequest www = UnityWebRequest.Get(colorApiUrl);
+        yield return www.SendWebRequest();
 
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            // Deserializar la respuesta JSON en un objeto ColorData
+            ColorData colorData = JsonUtility.FromJson<ColorData>(www.downloadHandler.text);
+
+            // Agregar '#' al valor de colorHex si es necesario
+            string colorHex = colorData.colorHex.StartsWith("#") ? colorData.colorHex : "#" + colorData.colorHex;
+
+            // Si el color es v�lido, lo pasamos al m�todo Interact del objeto interactuable
+            if (ColorUtility.TryParseHtmlString(colorHex, out Color newColor))
+            {
+                currentInteractable.Interact(newColor); // Pasar el color al objeto interactuable
+            }
+            else
+            {
+                Debug.LogError("El color recibido no es v�lido: " + colorHex);
+            }
+        }
+        else
+        {
+            Debug.LogError("Error al obtener el color: " + www.error);
+        }
+    }
+
+    // M�todo para registrar la interacci�n en la base de datos a trav�s de la API
+    IEnumerator RegisterInteraction()
+    {
+        UnityWebRequest www = UnityWebRequest.PostWwwForm(interactionApiUrl, "");  // Hacer una solicitud POST
+        yield return www.SendWebRequest();
+
+        if (www.result == UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Interacci�n registrada exitosamente.");
+        }
+        else
+        {
+            Debug.LogError("Error al registrar la interacci�n: " + www.error);
+        }
+    }
 
     void AnimateMovement(Vector2 direction)
     {
@@ -89,4 +138,10 @@ public class Player : MonoBehaviour
     }
 }
 
-
+// Clase que representa la estructura de la respuesta JSON
+[System.Serializable]
+public class ColorData
+{
+    public int id;
+    public string colorHex;
+}
