@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
@@ -8,29 +8,31 @@ public class Player : MonoBehaviour
     public Animator animator;
 
     private bool isFlipped = false; // Track the flip state
-    private string colorApiUrl = "http://localhost:5238/api/color"; // URL de la API para obtener color
-    private string interactionApiUrl = "http://localhost:5238/api/interaction"; // URL de la API para registrar interacciones
-
     private InteractableObject currentInteractable; // Variable para guardar el objeto interactuable actual
+    public bool isMinigameActive = false; // Bandera para controlar si el minijuego está activo
 
     private void Update()
     {
-        // Get input
-        float horizontal = Input.GetAxisRaw("Horizontal");
-        float vertical = Input.GetAxisRaw("Vertical");
-
-        // Create direction vector
-        Vector2 direction = new Vector2(horizontal, vertical).normalized;
-
-        // Animate player
-        AnimateMovement(direction);
-
-        // Apply movement
-        transform.position += new Vector3(direction.x, direction.y, 0f) * speed * Time.deltaTime;
-
-        if (Input.GetKeyDown(KeyCode.Z))
+        // Solo permitimos movimiento si no hay un minijuego activo
+        if (!isMinigameActive)
         {
-            Interact();
+            // Get input
+            float horizontal = Input.GetAxisRaw("Horizontal");
+            float vertical = Input.GetAxisRaw("Vertical");
+
+            // Create direction vector
+            Vector2 direction = new Vector2(horizontal, vertical).normalized;
+
+            // Animate player
+            AnimateMovement(direction);
+
+            // Apply movement
+            transform.position += new Vector3(direction.x, direction.y, 0f) * speed * Time.deltaTime;
+
+            if (Input.GetKeyDown(KeyCode.Z)) // Interactuar con el objeto al presionar "Z"
+            {
+                Interact();
+            }
         }
     }
 
@@ -47,59 +49,61 @@ public class Player : MonoBehaviour
 
             if (currentInteractable != null)
             {
-                // Obtener el color desde la API y pasarlo al objeto interactuable
-                StartCoroutine(GetColorFromApi());
-
-                // Registrar la interacci�n
-                StartCoroutine(RegisterInteraction());
+                Debug.Log("Se interactuó con un objeto");
+                // Cargar la escena del minijuego de manera aditiva
+                LoadMinigameScene(currentInteractable.minigameSceneName);
             }
         }
     }
 
-    // M�todo para obtener el color desde la API y pasarlo al objeto interactuable
-    IEnumerator GetColorFromApi()
+    // Método para cargar la escena del minijuego
+    void LoadMinigameScene(string sceneName)
     {
-        UnityWebRequest www = UnityWebRequest.Get(colorApiUrl);
-        yield return www.SendWebRequest();
-
-        if (www.result == UnityWebRequest.Result.Success)
+        if (!string.IsNullOrEmpty(sceneName))
         {
-            // Deserializar la respuesta JSON en un objeto ColorData
-            ColorData colorData = JsonUtility.FromJson<ColorData>(www.downloadHandler.text);
+            // Desactivar el movimiento mientras el minijuego esté activo
+            isMinigameActive = true;
 
-            // Agregar '#' al valor de colorHex si es necesario
-            string colorHex = colorData.colorHex.StartsWith("#") ? colorData.colorHex : "#" + colorData.colorHex;
+            // Guardar la posición actual del jugador
+            Vector3 playerPosition = transform.position;
 
-            // Si el color es v�lido, lo pasamos al m�todo Interact del objeto interactuable
-            if (ColorUtility.TryParseHtmlString(colorHex, out Color newColor))
-            {
-                currentInteractable.Interact(newColor); // Pasar el color al objeto interactuable
-            }
-            else
-            {
-                Debug.LogError("El color recibido no es v�lido: " + colorHex);
-            }
+            // Cargar la escena del minijuego de manera aditiva
+            SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
+
+            // Esperar un frame para asegurar que la nueva escena está cargada
+            StartCoroutine(PositionMinigameCameraAndObjects(playerPosition));
         }
         else
         {
-            Debug.LogError("Error al obtener el color: " + www.error);
+            Debug.LogError("El nombre de la escena del minijuego no es válido.");
         }
     }
 
-    // M�todo para registrar la interacci�n en la base de datos a trav�s de la API
-    IEnumerator RegisterInteraction()
+    // Corrutina para posicionar la cámara y objetos del minijuego en la ubicación del jugador
+    IEnumerator PositionMinigameCameraAndObjects(Vector3 playerPosition)
     {
-        UnityWebRequest www = UnityWebRequest.PostWwwForm(interactionApiUrl, "");  // Hacer una solicitud POST
-        yield return www.SendWebRequest();
+        yield return null; // Esperar un frame para que la escena del minijuego se cargue
 
-        if (www.result == UnityWebRequest.Result.Success)
+        // Posicionar la cámara del minijuego
+        GameObject minigameCamera = GameObject.FindWithTag("MinigameCamera");
+        if (minigameCamera != null)
         {
-            Debug.Log("Interacci�n registrada exitosamente.");
+            minigameCamera.transform.position = new Vector3(playerPosition.x, playerPosition.y, minigameCamera.transform.position.z);
+            Debug.Log("La cámara del minijuego ha sido posicionada en la ubicación del jugador.");
         }
         else
         {
-            Debug.LogError("Error al registrar la interacci�n: " + www.error);
+            Debug.LogWarning("No se encontró la cámara del minijuego.");
         }
+
+        // Posicionar los objetos del minijuego
+        GameObject[] minigameObjects = GameObject.FindGameObjectsWithTag("MinigameObject"); // Supongamos que los objetos del minijuego tienen este tag
+        foreach (GameObject minigameObject in minigameObjects)
+        {
+            minigameObject.transform.position = new Vector3(playerPosition.x, playerPosition.y, minigameObject.transform.position.z);
+        }
+
+        Debug.Log("Los objetos del minijuego han sido posicionados en la ubicación del jugador.");
     }
 
     void AnimateMovement(Vector2 direction)
@@ -136,12 +140,4 @@ public class Player : MonoBehaviour
             }
         }
     }
-}
-
-// Clase que representa la estructura de la respuesta JSON
-[System.Serializable]
-public class ColorData
-{
-    public int id;
-    public string colorHex;
 }
