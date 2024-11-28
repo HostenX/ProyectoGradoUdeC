@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class GetVariables : MonoBehaviour
 {
+    [SerializeField] private InteractiveTextManager interactiveTextManager;
     public List<int> numeros; // Lista de enteros
     public List<GameObject> objetos; // Lista de GameObjects
+    public string texto;
 
     void Awake()
     {
@@ -15,6 +17,12 @@ public class GetVariables : MonoBehaviour
         numeros.Add(10);
         numeros.Add(20);
 
+    }
+
+    void Start()
+    {
+        
+        interactiveTextManager.GenerateInteractiveText(texto);
     }
 
 }

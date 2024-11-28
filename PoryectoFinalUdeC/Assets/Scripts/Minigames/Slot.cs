@@ -22,7 +22,7 @@ public class Slot : MonoBehaviour, IDropHandler
                 Debug.Log($"{gameObject.name} = {LinkedNumber}");
             }
 
-            if (minigameController != null)
+            /*if (minigameController != null)
             {
                 minigameController.OnCompleteButtonPressed();
             }
@@ -30,6 +30,7 @@ public class Slot : MonoBehaviour, IDropHandler
             {
                 Debug.LogError("MinigameController no está asignado.");
             }
+            */
         }
     }
 }
