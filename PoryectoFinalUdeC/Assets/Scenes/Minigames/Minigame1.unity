@@ -172,9 +172,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bookPrefab: {fileID: 1742040094}
   spawnContainer: {fileID: 175133519}
-  numbers: 01000000020000000300000004000000050000000600000007000000
+  numbers:
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   spawnAreaSize: {x: 200, y: 500}
-  minSpacing: 60
+  minSpacing: 30
   gizmoColor: {r: 0, g: 1, b: 0, a: 0.25}
 --- !u!1 &255585957
 GameObject:
@@ -423,7 +430,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bookPrefab: {fileID: 6532824998379750, guid: 1f270a3691f59874e8ae886a8fd1ba20, type: 3}
   spawnContainer: {fileID: 175133519}
-  numbers: 00000000000000000000000000000000000000000000000000000000
+  numbers:
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
   spawnAreaSize: {x: 500, y: 500}
   minSpacing: 50
   gizmoColor: {r: 0, g: 1, b: 0, a: 0.25}
@@ -3049,7 +3063,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   textMeshPro: {fileID: 1295430706}
-  Option: 0
+  Option: 
 --- !u!1 &1753405071
 GameObject:
   m_ObjectHideFlags: 0
@@ -3111,7 +3125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   interactiveTextManager: {fileID: 1534236584}
   bookGenerator: {fileID: 175133520}
-  numeros: 
+  numeros: []
   texto: _ + _ = 3
 --- !u!1 &1815952972
 GameObject:

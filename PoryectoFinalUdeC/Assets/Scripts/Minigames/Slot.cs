@@ -11,7 +11,7 @@ public class Slot : MonoBehaviour, IDropHandler
     [SerializeField] private MinigameController minigameController;
     public GameObject textContainer;
 
-    public int LinkedNumber { get; private set; } = -1; // Opción asignada (-1 si no tiene)
+    public string LinkedNumber { get; private set; } = "-1"; // Opción asignada (-1 si no tiene)
 
     private void Start()
     {
@@ -59,6 +59,6 @@ public class Slot : MonoBehaviour, IDropHandler
     public string GetAssignedOptionText()
     {
         // Devuelve el texto correspondiente a la opción asignada
-        return LinkedNumber != -1 ? LinkedNumber.ToString() : "";
+        return LinkedNumber != "-1" ? LinkedNumber.ToString() : "";
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,7 +5,7 @@ public class BookGenerator : MonoBehaviour
 {
     [SerializeField] private GameObject bookPrefab; // Prefab del objeto "Book"
     [SerializeField] private Transform spawnContainer; // Contenedor para los libros
-    public List<int> numbers; // Lista de números para los libros
+    public List<string> numbers; // Lista de números para los libros
     public Vector2 spawnAreaSize = new Vector2(200, 500); // Área de generación (en unidades de UI o mundo)
     public float minSpacing = 60f; // Distancia mínima entre libros
     public Color gizmoColor = new Color(0, 1, 0, 0.25f); // Color del gizmo
@@ -28,7 +27,7 @@ public class BookGenerator : MonoBehaviour
         List<Vector2> usedPositions = new List<Vector2>();
 
         // Generar un libro por cada número
-        foreach (int number in numbers)
+        foreach (string number in numbers)
         {
             Vector2 spawnPosition;
             int attempts = 0;
@@ -38,7 +37,6 @@ public class BookGenerator : MonoBehaviour
             do
             {
                 float randomX = Random.Range(-spawnAreaSize.x, spawnAreaSize.x);
-                
                 spawnPosition = new Vector2(randomX, -30f);
                 attempts++;
             }
@@ -57,7 +55,7 @@ public class BookGenerator : MonoBehaviour
             OptionController optionController = newBook.GetComponent<OptionController>();
             if (optionController != null)
             {
-                optionController.Initialize(number);
+                optionController.Initialize(number);  // Pasar el valor como string
             }
             else
             {
