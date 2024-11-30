@@ -1,20 +1,19 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using TMPro;
+using UnityEngine;
 
 public class OptionController : MonoBehaviour
 {
     public TextMeshProUGUI textMeshPro; // Referencia al TextMeshPro para mostrar el número
-    public int Option; // Número asignado a este libro
+    public string Option; // Número asignado a este libro
 
-    public void Initialize(int assignedOption)
+    // Cambiar a string, ya que puede ser tanto un número como un operador
+    public void Initialize(string assignedOption)
     {
         Option = assignedOption;
 
         if (textMeshPro != null)
         {
-            textMeshPro.text = Option.ToString(); // Mostrar el número en el texto
+            textMeshPro.text = Option; // Mostrar el texto (número o operador)
         }
         else
         {
