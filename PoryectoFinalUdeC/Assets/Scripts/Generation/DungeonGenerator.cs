@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class DungeonGenerator : MonoBehaviour
 {
     public int maxSpecialRoom;
+    public List<string> specialRoomTypes; // Lista de tipos de habitaciones especiales
     private int indexBossRoom = 0;
     public DungeonGenerationData dungeonGenerationData;
     private List<Vector2Int> dungeonRooms;
@@ -16,6 +18,7 @@ public class DungeonGenerator : MonoBehaviour
 
         // Llamamos a UpdateAllRoomDoors aquí después de que todas las habitaciones se hayan cargado.
         RoomController.instance.UpdateAllRoomDoors();
+        maxSpecialRoom = specialRoomTypes.Count();
     }
 
     private void SpawnRooms(IEnumerable<Vector2Int> rooms)
@@ -37,9 +40,11 @@ public class DungeonGenerator : MonoBehaviour
                 RoomController.instance.LoadRoom("End", roomLocation.x, roomLocation.y);
                 indexBossRoom += 1;
             }
-            else if (specialRoomCount <= maxSpecialRoom && roomLocation != Vector2.zero && Random.value < 0.5f && IsRoomFarEnough(roomLocation, specialRoomLocations))
+            else if (specialRoomCount <= maxSpecialRoom && roomLocation != Vector2Int.zero && Random.value < 0.5f && IsRoomFarEnough(roomLocation, specialRoomLocations))
             {
-                RoomController.instance.LoadRoom("Special1", roomLocation.x, roomLocation.y);
+                // Seleccionamos aleatoriamente un tipo de habitación especial
+                string specialRoomType = specialRoomTypes[Random.Range(0, specialRoomTypes.Count)];
+                RoomController.instance.LoadRoom(specialRoomType, roomLocation.x, roomLocation.y);
                 specialRoomLocations.Add(roomLocation);
                 specialRoomCount += 1;
             }
@@ -61,7 +66,9 @@ public class DungeonGenerator : MonoBehaviour
             Vector2Int selectedLocation = potentialSpecialRooms[Random.Range(0, potentialSpecialRooms.Count)];
             if (IsRoomFarEnough(selectedLocation, specialRoomLocations))
             {
-                RoomController.instance.LoadRoom("Special1", selectedLocation.x, selectedLocation.y);
+                // Seleccionamos aleatoriamente un tipo de habitación especial
+                string specialRoomType = specialRoomTypes[Random.Range(0, specialRoomTypes.Count)];
+                RoomController.instance.LoadRoom(specialRoomType, selectedLocation.x, selectedLocation.y);
                 specialRoomLocations.Add(selectedLocation);
                 specialRoomCount += 1;
             }

@@ -24,6 +24,12 @@ EditorBuildSettings:
     path: Assets/Scenes/DungeonRooms/BasementSpecial1.unity
     guid: adc6bb91b2d079642ad1f3656100849b
   - enabled: 1
+    path: Assets/Scenes/DungeonRooms/BasementSpecial2.unity
+    guid: 890e9cf398587ce4693d0778d6ba0b45
+  - enabled: 1
     path: Assets/Scenes/Minigames/Minigame1.unity
     guid: 43d10395ebf4a6a429643c70b838d1c9
+  - enabled: 1
+    path: Assets/Scenes/Minigames/Minigame2.unity
+    guid: e2541b8d758058747aec1d6d5743bf2e
   m_configObjects: {}

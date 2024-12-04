@@ -7,6 +7,7 @@ public class MinigameController : MonoBehaviour
     public string sceneName;
     private Player player;  // Referencia al jugador
     [SerializeField] private InteractiveTextManager textManager;
+    [SerializeField] private GetVariables getVariables;
 
     private void Start()
     {
@@ -20,7 +21,7 @@ public class MinigameController : MonoBehaviour
     }
 
     // Método que se llamará cuando se presione el botón "Completo"
-    public void OnCompleteButtonPressed()
+    public void OnEquationComplete()
     {
         // Obtener el texto compilado desde InteractiveTextManager
         string textoCompilado = textManager.CompileText();
@@ -40,6 +41,28 @@ public class MinigameController : MonoBehaviour
             Debug.Log("Respuesta incorrecta, intentalo nuevamente");
         }
         
+    }
+
+    public void OnTextComplete() //Boton de minijuego "Completar Texto" terminado
+    {
+        // Obtener el texto compilado desde InteractiveTextManager
+        string textoCompilado = textManager.CompileText();
+
+        // Evaluar la ecuación con el texto compilado
+        bool esValida = EvaluarTexto(textoCompilado);
+
+        if (esValida)
+        {
+            // Log de resultado
+            Debug.Log("Minijuego completado.");
+            // Manejar el resultado del minijuego
+            HandleMinigameCompletion(esValida);  // Pasamos el resultado de la evaluación (true o false)
+        }
+        else
+        {
+            Debug.Log("Respuesta incorrecta, intentalo nuevamente");
+        }
+
     }
 
     // Método que se llamará cuando se presione el botón "Incompleto"
@@ -104,6 +127,25 @@ public class MinigameController : MonoBehaviour
             return false;
         }
     }
+    
 
+    public bool EvaluarTexto (string texto)
+    {
+        if (getVariables == null)
+        {
+            Debug.LogError("GetVariables no está asignado. No se puede evaluar el texto.");
+            return false;
+        }
 
+        string respuestaCorrecta = getVariables.respuestaCorrecta;
+
+        if (string.IsNullOrEmpty(respuestaCorrecta))
+        {
+            Debug.LogError("No se ha definido una respuesta correcta en GetVariables.");
+            return false;
+        }
+
+        // Comparar ignorando mayúsculas/minúsculas y espacios adicionales
+        return string.Equals(texto.Trim(), respuestaCorrecta.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
 }

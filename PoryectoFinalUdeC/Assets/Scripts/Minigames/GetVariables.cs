@@ -9,62 +9,118 @@ public class GetVariables : MonoBehaviour
     [SerializeField] private InteractiveTextManager interactiveTextManager;
     [SerializeField] private BookGenerator bookGenerator;
 
-    public List<string> numeros; // Lista de strings
-    public string texto; // Texto de la pregunta
+    public List<string> opciones; // Opciones de respuesta
+    public string pregunta; // Texto de la pregunta principal
+    public List<string> listaPreguntas; // Lista de preguntas (para conectar valores)
+    public List<string> listaRespuestas; // Lista de respuestas (para conectar valores)
+    public string respuestaCorrecta; // Respuesta correcta en caso de minijuegos directos
+
+    public string Curso;
+    public int UsuarioCreador;
+    public string tipoMinijuego;
 
     private string apiUrl = "https://localhost:7193/api/Minijuego/GetMinijuegosFiltrados"; // Cambia esto por tu URL real de la API
 
     void Start()
     {
         // Llamar al método para obtener los datos de la API
-        StartCoroutine(GetMinijuegoData("3A", 1, 1, "Ecuacion"));
+        StartCoroutine(GetMinijuegoData(Curso, UsuarioCreador, 1, tipoMinijuego));
     }
 
     // Método para hacer la llamada a la API y obtener el minijuego
     IEnumerator GetMinijuegoData(string curso, int usuarioCreadorId, int estadoId, string tipoMinijuego)
     {
-        // Construir la URL con los parámetros de consulta
         string url = $"{apiUrl}?curso={curso}&usuarioCreadorId={usuarioCreadorId}&estadoId={estadoId}&tipoMinijuego={tipoMinijuego}";
 
-        // Crear la solicitud
         UnityWebRequest request = UnityWebRequest.Get(url);
-
-        // Esperar la respuesta de la API
         yield return request.SendWebRequest();
 
-        // Verificar si hubo un error en la solicitud
         if (request.result != UnityWebRequest.Result.Success)
         {
             Debug.LogError("Error al obtener datos de la API: " + request.error);
             yield break;
         }
 
-        // Procesar la respuesta JSON
         string jsonResponse = request.downloadHandler.text;
         var minijuegos = JsonHelper.FromJson<Minijuego>(jsonResponse);
 
         if (minijuegos != null && minijuegos.Length > 0)
         {
-            // Extraer los valores de la respuesta y pregunta
-            string valoresRespuesta = minijuegos[0].valoresRespuesta;
-            string valoresPregunta = minijuegos[0].valoresPregunta;
+            // Obtener el primer minijuego
+            var minijuego = minijuegos[0];
 
-            // Asignar los valores a las variables de Unity
-            texto = valoresPregunta;
+            // Usar un switch para interpretar los datos según el tipo de minijuego
+            switch (tipoMinijuego.ToLower())
+            {
+                case "ecuacion":
+                    ConfigurarEcuacion(minijuego);
+                    break;
+                case "frase":
+                    ConfigurarFrase(minijuego);
+                    break;
 
-            // Convertir los valores de respuesta en una lista de strings (sin necesidad de conversión a enteros)
-            numeros = valoresRespuesta.Split(',').Select(s => s.Trim()).ToList();  // Lista de strings
+                case "conectar":
+                    ConfigurarConectarValores(minijuego);
+                    break;
 
-            // Asignar la lista de números al generador de libros
-            bookGenerator.numbers = new List<string>(numeros);
-
-            // Llamar a los métodos de gestión de texto y generación de libros
-            interactiveTextManager.GenerateInteractiveText(texto);
-            bookGenerator.GenerateBooks();
+                default:
+                    Debug.LogWarning("Tipo de minijuego no reconocido: " + tipoMinijuego);
+                    break;
+            }
         }
         else
         {
             Debug.LogWarning("No se encontró ningún minijuego con los filtros especificados.");
+        }
+    }
+
+    // Configuración específica para el minijuego tipo "Ecuación"
+    void ConfigurarEcuacion(Minijuego minijuego)
+    {
+        pregunta = minijuego.valoresPregunta;
+        opciones = minijuego.valoresRespuesta.Split(',').Select(s => s.Trim()).ToList();
+        respuestaCorrecta = minijuego.respuestaCorrecta;
+
+        // Actualizar el UI y generar los libros
+        interactiveTextManager.GenerateInteractiveEquation(pregunta);
+        bookGenerator.numbers = new List<string>(opciones);
+        bookGenerator.GenerateBooks();
+    }
+
+    void ConfigurarFrase (Minijuego minijuego)
+    {
+        pregunta = minijuego.valoresPregunta;
+        opciones = minijuego.valoresRespuesta.Split(',').Select(s => s.Trim()).ToList();
+        respuestaCorrecta = minijuego.respuestaCorrecta;
+
+        // Actualizar el UI y generar los libros
+        interactiveTextManager.GenerateInteractiveText(pregunta);
+        bookGenerator.numbers = new List<string>(opciones);
+        bookGenerator.GenerateBooks();
+    }
+
+    // Configuración específica para el minijuego tipo "Conectar"
+    void ConfigurarConectarValores(Minijuego minijuego)
+    {
+        listaPreguntas = minijuego.valoresPregunta.Split(';').Select(s => s.Trim()).ToList();
+        listaRespuestas = minijuego.valoresRespuesta.Split(';').Select(s => s.Trim()).ToList();
+
+        // Validar si ambas listas tienen el mismo tamaño
+        if (listaPreguntas.Count != listaRespuestas.Count)
+        {
+            Debug.LogWarning("Las listas de preguntas y respuestas no coinciden en tamaño.");
+            return;
+        }
+
+        // Aquí puedes implementar lógica para UI específica, como generar elementos para conectar
+        // Por ejemplo:
+        foreach (var pregunta in listaPreguntas)
+        {
+            Debug.Log("Pregunta: " + pregunta);
+        }
+        foreach (var respuesta in listaRespuestas)
+        {
+            Debug.Log("Respuesta: " + respuesta);
         }
     }
 }
