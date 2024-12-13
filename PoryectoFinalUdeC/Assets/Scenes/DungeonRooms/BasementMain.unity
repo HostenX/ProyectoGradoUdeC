@@ -200,7 +200,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 2039607739
-  m_SortingLayer: 7
+  m_SortingLayer: 8
   m_SortingOrder: 0
   m_Sprite: {fileID: -1574204738, guid: bae2c1cbd9108704cb2453216f84c85b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -333,6 +333,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 5
   animator: {fileID: 95899031}
+  isMinigameActive: 0
 --- !u!4 &446454503
 Transform:
   m_ObjectHideFlags: 0
@@ -406,7 +407,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a6d8f8165aa33f40b7f1939284b3105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpecialRoom: 5
+  maxSpecialRoom: 6
+  specialRoomTypes:
+  - Special1
+  - Special2
+  - Special3
   dungeonGenerationData: {fileID: 11400000, guid: 9ee98c3045111ef4b845ffb67323444e, type: 2}
 --- !u!1 &1378551389
 GameObject:

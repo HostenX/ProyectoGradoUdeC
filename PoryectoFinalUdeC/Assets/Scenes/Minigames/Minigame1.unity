@@ -438,8 +438,8 @@ MonoBehaviour:
   - 
   - 
   - 
-  spawnAreaSize: {x: 500, y: 500}
-  minSpacing: 50
+  spawnAreaSize: {x: 200, y: 0}
+  minSpacing: 0
   gizmoColor: {r: 0, g: 1, b: 0, a: 0.25}
 --- !u!4 &529346361
 Transform:
@@ -2845,7 +2845,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1753405072}
         m_TargetAssemblyTypeName: MinigameController, Assembly-CSharp
-        m_MethodName: OnCompleteButtonPressed
+        m_MethodName: OnEquationComplete
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3096,6 +3096,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneName: Minigame1
   textManager: {fileID: 1534236584}
+  getVariables: {fileID: 0}
 --- !u!4 &1753405073
 Transform:
   m_ObjectHideFlags: 0
@@ -3125,8 +3126,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   interactiveTextManager: {fileID: 1534236584}
   bookGenerator: {fileID: 175133520}
-  numeros: []
-  texto: _ + _ = 3
+  opciones: []
+  pregunta: 
+  listaPreguntas: []
+  listaRespuestas: []
+  respuestaCorrecta: 
+  Curso: 3A
+  UsuarioCreador: 1
+  tipoMinijuego: Ecuacion
 --- !u!1 &1815952972
 GameObject:
   m_ObjectHideFlags: 0
