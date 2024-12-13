@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using Unity.VisualScripting.Dependencies.NCalc;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -8,6 +10,10 @@ public class MinigameController : MonoBehaviour
     private Player player;  // Referencia al jugador
     [SerializeField] private InteractiveTextManager textManager;
     [SerializeField] private GetVariables getVariables;
+    [SerializeField] private BalanceWeightController balanceController;
+
+    public Dictionary<Wire, GameObject> wireConnections = new Dictionary<Wire, GameObject>();
+    public int totalConnectionsNeeded; // Total de conexiones correctas necesarias para ganar
 
     private void Start()
     {
@@ -18,6 +24,7 @@ public class MinigameController : MonoBehaviour
         {
             Debug.LogError("No se encontró el jugador en la escena principal.");
         }
+        
     }
 
     // Método que se llamará cuando se presione el botón "Completo"
@@ -65,12 +72,34 @@ public class MinigameController : MonoBehaviour
 
     }
 
+    public void OnBalanceComplete()
+    {
+        // Evaluar la ecuación con el texto compilado
+        bool esValida = EvaluarDesigualdad(balanceController.leftSide.TotalWeight, balanceController.rightSide.TotalWeight, balanceController.currentInequality);
+
+        if (esValida)
+        {
+            // Log de resultado
+            Debug.Log("Minijuego completado.");
+            // Manejar el resultado del minijuego
+            HandleMinigameCompletion(esValida);  // Pasamos el resultado de la evaluación (true o false)
+        }
+        else
+        {
+            Debug.Log("Respuesta incorrecta, intentalo nuevamente");
+        }
+    }
+   
     // Método que se llamará cuando se presione el botón "Incompleto"
     public void OnIncompleteButtonPressed()
     {
         Debug.Log("Minijuego no completado.");
         HandleMinigameCompletion(false);  // Pasamos false indicando que no se completó
     }
+
+
+    //========================================== Evaluacoones============================================
+
 
     // Método que maneja el resultado del minijuego y cierra la escena
     void HandleMinigameCompletion(bool isCompleted)
@@ -82,6 +111,7 @@ public class MinigameController : MonoBehaviour
         if (player != null)
         {
             player.isMinigameActive = false;
+            player.SetPlayerCollidersActive(true);
         }
 
         // Cerrar la escena del minijuego cargada aditivamente
@@ -127,8 +157,22 @@ public class MinigameController : MonoBehaviour
             return false;
         }
     }
-    
 
+    public bool EvaluarDesigualdad(float valorIzquierdo, float valorDerecho, string desigualdad)
+    {
+        switch (desigualdad)
+        {
+            case "<":
+                return valorIzquierdo < valorDerecho;
+            case ">":
+                return valorIzquierdo > valorDerecho;
+            case "=":
+                return Mathf.Approximately(valorIzquierdo, valorDerecho);
+            default:
+                Debug.LogError("Desigualdad no reconocida.");
+                return false;
+        }
+    }
     public bool EvaluarTexto (string texto)
     {
         if (getVariables == null)
@@ -148,4 +192,40 @@ public class MinigameController : MonoBehaviour
         // Comparar ignorando mayúsculas/minúsculas y espacios adicionales
         return string.Equals(texto.Trim(), respuestaCorrecta.Trim(), StringComparison.OrdinalIgnoreCase);
     }
+
+    public void EvaluarConectar()
+    {
+        int conexionesCorrectas = 0;
+
+        foreach (var conexion in wireConnections)
+        {
+            Wire pregunta = conexion.Key;
+            GameObject respuestaObjeto = conexion.Value;
+
+            // Verifica si el objeto conectado es un Wire
+            Wire respuesta = respuestaObjeto.GetComponent<Wire>();
+
+            if (respuesta != null)
+            {
+                // Verifica si la conexión es válida
+                if (string.Equals(pregunta.AnswerText, respuesta.AnswerText, StringComparison.OrdinalIgnoreCase))
+                {
+                    conexionesCorrectas++;
+                }
+            }
+        }
+
+        // Comparar conexiones correctas con las necesarias
+        if (conexionesCorrectas >= totalConnectionsNeeded)
+        {
+            Debug.Log("¡Todas las conexiones son correctas! Minijuego completado.");
+            HandleMinigameCompletion(true);
+        }
+        else
+        {
+            Debug.Log($"Conexiones correctas: {conexionesCorrectas} de {totalConnectionsNeeded}. Intenta de nuevo.");
+        }
+    }
+
+
 }

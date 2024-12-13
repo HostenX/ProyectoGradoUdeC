@@ -6,10 +6,17 @@ public class Player : MonoBehaviour
 {
     public float speed;
     public Animator animator;
-
     private bool isFlipped = false; // Track the flip state
     private InteractableObject currentInteractable; // Variable para guardar el objeto interactuable actual
     public bool isMinigameActive = false; // Bandera para controlar si el minijuego está activo
+
+    private Collider2D[] playerColliders; // Referencia a los colliders del jugador
+
+    private void Start()
+    {
+        // Obtener todos los colliders 2D del jugador
+        playerColliders = GetComponents<Collider2D>();
+    }
 
     private void Update()
     {
@@ -63,6 +70,9 @@ public class Player : MonoBehaviour
         {
             // Desactivar el movimiento mientras el minijuego esté activo
             isMinigameActive = true;
+
+            // Desactivar los colliders 2D
+            SetPlayerCollidersActive(false);
 
             // Guardar la posición actual del jugador
             Vector3 playerPosition = transform.position;
@@ -137,6 +147,18 @@ public class Player : MonoBehaviour
                 animator.SetBool("isMoving", false);
                 // Set animation speed back to 1 (default) when not moving
                 animator.speed = 1;
+            }
+        }
+    }
+
+    // Método para desactivar los colliders 2D del jugador
+    public void SetPlayerCollidersActive(bool isActive)
+    {
+        if (playerColliders != null)
+        {
+            foreach (Collider2D collider in playerColliders)
+            {
+                collider.enabled = isActive;
             }
         }
     }

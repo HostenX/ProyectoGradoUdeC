@@ -407,10 +407,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a6d8f8165aa33f40b7f1939284b3105, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpecialRoom: 5
+  maxSpecialRoom: 6
   specialRoomTypes:
   - Special1
   - Special2
+  - Special3
   dungeonGenerationData: {fileID: 11400000, guid: 9ee98c3045111ef4b845ffb67323444e, type: 2}
 --- !u!1 &1378551389
 GameObject:

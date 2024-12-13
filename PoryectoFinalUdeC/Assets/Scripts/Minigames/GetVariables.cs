@@ -8,11 +8,14 @@ public class GetVariables : MonoBehaviour
 {
     [SerializeField] private InteractiveTextManager interactiveTextManager;
     [SerializeField] private BookGenerator bookGenerator;
+    [SerializeField] private BagSpawner bagSwner;
+    [SerializeField] private WireGenerator wireGenerator;
 
     public List<string> opciones; // Opciones de respuesta
     public string pregunta; // Texto de la pregunta principal
     public List<string> listaPreguntas; // Lista de preguntas (para conectar valores)
     public List<string> listaRespuestas; // Lista de respuestas (para conectar valores)
+    public List<float> pesos;
     public string respuestaCorrecta; // Respuesta correcta en caso de minijuegos directos
 
     public string Curso;
@@ -62,6 +65,9 @@ public class GetVariables : MonoBehaviour
                 case "conectar":
                     ConfigurarConectarValores(minijuego);
                     break;
+                case "balanza":
+                    ConfigurarBalanza(minijuego);
+                    break;
 
                 default:
                     Debug.LogWarning("Tipo de minijuego no reconocido: " + tipoMinijuego);
@@ -86,6 +92,17 @@ public class GetVariables : MonoBehaviour
         bookGenerator.numbers = new List<string>(opciones);
         bookGenerator.GenerateBooks();
     }
+    void ConfigurarBalanza(Minijuego minijuego)
+    {
+        // Dividir y limpiar los valores de respuesta
+        opciones = minijuego.valoresRespuesta.Split(',').Select(s => s.Trim()).ToList();
+
+        // Convertir las opciones de string a float y asignarlas a la lista de weights
+        bagSwner.weights = opciones.Select(s => float.Parse(s)).ToList();
+
+        // Generar las bolsas o elementos en la balanza
+        bagSwner.GenerateBags();
+    }
 
     void ConfigurarFrase (Minijuego minijuego)
     {
@@ -102,15 +119,19 @@ public class GetVariables : MonoBehaviour
     // Configuración específica para el minijuego tipo "Conectar"
     void ConfigurarConectarValores(Minijuego minijuego)
     {
-        listaPreguntas = minijuego.valoresPregunta.Split(';').Select(s => s.Trim()).ToList();
-        listaRespuestas = minijuego.valoresRespuesta.Split(';').Select(s => s.Trim()).ToList();
+        listaPreguntas = minijuego.valoresPregunta.Split(',').Select(s => s.Trim()).ToList();
+        listaRespuestas = minijuego.valoresRespuesta.Split(',').Select(s => s.Trim()).ToList();
 
         // Validar si ambas listas tienen el mismo tamaño
         if (listaPreguntas.Count != listaRespuestas.Count)
         {
             Debug.LogWarning("Las listas de preguntas y respuestas no coinciden en tamaño.");
             return;
+
+            
         }
+
+        wireGenerator.GenerateWires(listaPreguntas, listaRespuestas);
 
         // Aquí puedes implementar lógica para UI específica, como generar elementos para conectar
         // Por ejemplo:
