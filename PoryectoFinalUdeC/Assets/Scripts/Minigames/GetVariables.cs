@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
 using System.Linq;
+using Newtonsoft.Json.Linq;
+using System.Text.RegularExpressions;
+using Newtonsoft.Json;
 
 public class GetVariables : MonoBehaviour
 {
@@ -45,9 +48,12 @@ public class GetVariables : MonoBehaviour
         }
 
         string jsonResponse = request.downloadHandler.text;
+        Debug.Log("JSON original: " + jsonResponse);
         var minijuegos = JsonHelper.FromJson<Minijuego>(jsonResponse);
+        Debug.Log($"Cantidad de minijuegos deserializados: {minijuegos?.Length ?? 0}");
 
-        if (minijuegos != null && minijuegos.Length > 0)
+
+        if (minijuegos != null)
         {
             // Obtener el primer minijuego
             var minijuego = minijuegos[0];
@@ -147,42 +153,89 @@ public class GetVariables : MonoBehaviour
 }
 
 // Clases para deserializar el JSON
-[System.Serializable]
+[JsonObject]
 public class Minijuego
 {
+    [JsonProperty("minijuegoId")]
     public int minijuegoId;
+
+    [JsonProperty("titulo")]
     public string titulo;
+
+    [JsonProperty("descripcion")]
     public string descripcion;
+
+    [JsonProperty("tematicoId")]
     public int tematicoId;
+
+    [JsonProperty("usuarioCreadorId")]
     public int usuarioCreadorId;
+
+    [JsonProperty("estadoId")]
     public int estadoId;
+
+    [JsonProperty("penalidadPuntos")]
     public int penalidadPuntos;
+
+    [JsonProperty("intentosPermitidos")]
     public int? intentosPermitidos;
+
+    [JsonProperty("tiempoMinimo")]
     public int? tiempoMinimo;
+
+    [JsonProperty("puntosBase")]
     public string puntosBase;
+
+    [JsonProperty("valoresPregunta")]
     public string valoresPregunta;
+
+    [JsonProperty("valoresRespuesta")]
     public string valoresRespuesta;
+
+    [JsonProperty("respuestaCorrecta")]
     public string respuestaCorrecta;
+
+    [JsonProperty("cursoMinijuego")]
     public string cursoMinijuego;
+
+    [JsonProperty("tipoMinijuego")]
     public string tipoMinijuego;
+
+    [JsonProperty("estado")]
     public object estado;
+
+    [JsonProperty("tematico")]
     public object tematico;
+
+    [JsonProperty("usuarioCreador")]
     public object usuarioCreador;
 }
-
 // Helper para deserializar un arreglo de JSON
 public static class JsonHelper
 {
     public static T[] FromJson<T>(string json)
     {
-        json = "{\"items\":" + json + "}";
-        Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
-        return wrapper.items;
-    }
+        try
+        {
+            // Parseamos el JSON a un JObject
+            JObject jsonObject = JObject.Parse(json);
 
-    [System.Serializable]
-    private class Wrapper<T>
-    {
-        public T[] items;
+            // Obtenemos el array de valores
+            JArray valuesArray = jsonObject["$values"] as JArray;
+
+            if (valuesArray == null)
+            {
+                Debug.LogError("No se encontró el array $values en el JSON");
+                return null;
+            }
+
+            // Convertimos directamente el JArray a array del tipo deseado
+            return valuesArray.ToObject<T[]>();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"Error deserializando JSON: {e.Message}\nJSON recibido: {json}");
+            return null;
+        }
     }
 }
