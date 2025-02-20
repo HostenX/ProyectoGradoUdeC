@@ -30,6 +30,9 @@ EditorBuildSettings:
     path: Assets/Scenes/DungeonRooms/BasementSpecial3.unity
     guid: 1af143afee84a184b8d8c59c3fba5570
   - enabled: 1
+    path: Assets/Scenes/DungeonRooms/BasementSpecial4.unity
+    guid: b50db3150dd62ac4eba7a50d6e3ef23e
+  - enabled: 1
     path: Assets/Scenes/Minigames/Minigame1.unity
     guid: 43d10395ebf4a6a429643c70b838d1c9
   - enabled: 1
@@ -38,4 +41,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Minigames/Minigame3.unity
     guid: 627b5ac66c816574bba992615833953b
+  - enabled: 1
+    path: Assets/Scenes/Minigames/Minigame4.unity
+    guid: be55e87f39f1aae4caf5951872485bb9
   m_configObjects: {}

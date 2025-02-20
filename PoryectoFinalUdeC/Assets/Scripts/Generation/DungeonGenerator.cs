@@ -26,54 +26,66 @@ public class DungeonGenerator : MonoBehaviour
         int specialRoomCount = 1;
         List<Vector2Int> potentialSpecialRooms = new List<Vector2Int>();
         List<Vector2Int> specialRoomLocations = new List<Vector2Int>();
+        List<Vector2Int> emptyRooms = new List<Vector2Int>();
 
         RoomController.instance.LoadRoom("Start", 0, 0);
-
-        // Guardamos la última habitación como la ubicación de la habitación del jefe
         Vector2Int bossRoomLocation = dungeonRooms[dungeonRooms.Count - 1];
 
         foreach (Vector2Int roomLocation in rooms)
         {
             if (roomLocation == bossRoomLocation && roomLocation != Vector2Int.zero)
             {
-                // Generamos la habitación de jefe aquí
                 RoomController.instance.LoadRoom("End", roomLocation.x, roomLocation.y);
-                indexBossRoom += 1;
             }
             else if (specialRoomCount <= maxSpecialRoom && roomLocation != Vector2Int.zero && Random.value < 0.5f && IsRoomFarEnough(roomLocation, specialRoomLocations))
             {
-                // Seleccionamos aleatoriamente un tipo de habitación especial
                 string specialRoomType = specialRoomTypes[Random.Range(0, specialRoomTypes.Count)];
                 RoomController.instance.LoadRoom(specialRoomType, roomLocation.x, roomLocation.y);
                 specialRoomLocations.Add(roomLocation);
-                specialRoomCount += 1;
+                specialRoomCount++;
             }
             else
             {
-                potentialSpecialRooms.Add(roomLocation);
+                emptyRooms.Add(roomLocation);
                 RoomController.instance.LoadRoom("Empty", roomLocation.x, roomLocation.y);
             }
         }
 
-        // Aseguramos que si no se generó la habitación "End" en el bucle anterior, la generamos manualmente
+        // Asegurarse de que la habitación del jefe exista
         if (!RoomController.instance.DoesRoomExist(bossRoomLocation.x, bossRoomLocation.y))
         {
             RoomController.instance.LoadRoom("End", bossRoomLocation.x, bossRoomLocation.y);
         }
 
-        while (specialRoomCount <= maxSpecialRoom && potentialSpecialRooms.Count > 0)
+        // Ahora intentamos reemplazar habitaciones vacías con habitaciones especiales
+        ConvertEmptyRoomsToSpecial(emptyRooms, ref specialRoomCount, specialRoomLocations);
+    }
+
+    private void ConvertEmptyRoomsToSpecial(List<Vector2Int> emptyRooms, ref int specialRoomCount, List<Vector2Int> specialRoomLocations)
+    {
+        List<Vector2Int> roomsToConvert = new List<Vector2Int>(emptyRooms); // Copia para evitar modificar la lista mientras iteramos
+
+        foreach (Vector2Int selectedLocation in roomsToConvert)
         {
-            Vector2Int selectedLocation = potentialSpecialRooms[Random.Range(0, potentialSpecialRooms.Count)];
-            if (IsRoomFarEnough(selectedLocation, specialRoomLocations))
+            if (specialRoomCount >= maxSpecialRoom) break;
+
+            string specialRoomType = specialRoomTypes[Random.Range(0, specialRoomTypes.Count)];
+
+            if (RoomController.instance.DoesRoomExist(selectedLocation.x, selectedLocation.y))
             {
-                // Seleccionamos aleatoriamente un tipo de habitación especial
-                string specialRoomType = specialRoomTypes[Random.Range(0, specialRoomTypes.Count)];
-                RoomController.instance.LoadRoom(specialRoomType, selectedLocation.x, selectedLocation.y);
+                RoomController.instance.ReplaceRoom(selectedLocation.x, selectedLocation.y, specialRoomType);
                 specialRoomLocations.Add(selectedLocation);
-                specialRoomCount += 1;
+                specialRoomCount++; // Incrementamos para evitar bucles infinitos
             }
-            potentialSpecialRooms.Remove(selectedLocation);
+
+            emptyRooms.Remove(selectedLocation); // Eliminamos de la lista de vacías
         }
+    }
+
+    // Método para eliminar habitaciones que no se cargaron
+    private void RemoveUnloadedRooms(List<Vector2Int> roomList)
+    {
+        roomList.RemoveAll(room => !RoomController.instance.DoesRoomExist(room.x, room.y));
     }
 
     // Método para verificar si una habitación está lo suficientemente lejos de las habitaciones especiales existentes

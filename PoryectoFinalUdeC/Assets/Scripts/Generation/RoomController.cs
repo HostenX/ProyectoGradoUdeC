@@ -101,15 +101,19 @@ public class RoomController : MonoBehaviour
             room.name = currentWorldName + "-" + currentLoadRoomData.name + " " + room.X + ", " + room.Y;
             room.transform.parent = transform;
 
-            isLoadingRoom = false;
-
             loadedRooms.Add(room);
         }
         else
         {
             Destroy(room.gameObject);
-            isLoadingRoom = false;
         }
+        isLoadingRoom = false;
+    }
+
+    // Método para verificar si la habitación está correctamente cargada
+    public bool IsRoomLoaded(int x, int y)
+    {
+        return loadedRooms.Exists(room => room.X == x && room.Y == y);
     }
 
     public bool DoesRoomExist(int x, int y)
@@ -129,4 +133,19 @@ public class RoomController : MonoBehaviour
             room.RemoveOnConnectedDoors();
         }
     }
+
+    public void ReplaceRoom(int x, int y, string newRoomType)
+    {
+        Room existingRoom = FindRoom(x, y);
+        if (existingRoom != null)
+        {
+            loadedRooms.Remove(existingRoom);
+            Destroy(existingRoom.gameObject);
+        }
+
+        // Asegurar que la nueva habitación se registre correctamente
+        LoadRoom(newRoomType, x, y);
+    }
+
+
 }

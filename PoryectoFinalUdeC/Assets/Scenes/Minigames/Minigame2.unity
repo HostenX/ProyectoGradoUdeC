@@ -295,8 +295,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: dcd2e74fb5ff13a4fbaaad13710540f3, type: 2}
-  m_sharedMaterial: {fileID: -11714652586297522, guid: dcd2e74fb5ff13a4fbaaad13710540f3, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 68f7e18d16f5bea43a7b32cd41114573, type: 2}
+  m_sharedMaterial: {fileID: 2963103731240007516, guid: 68f7e18d16f5bea43a7b32cd41114573, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -769,7 +769,7 @@ MonoBehaviour:
       m_Calls: []
   m_text: New Text
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: dcd2e74fb5ff13a4fbaaad13710540f3, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 68f7e18d16f5bea43a7b32cd41114573, type: 2}
   m_sharedMaterial: {fileID: -11714652586297522, guid: dcd2e74fb5ff13a4fbaaad13710540f3, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -833,7 +833,7 @@ MonoBehaviour:
   m_margin: {x: 0.43375778, y: 0.58582306, z: 0.019397724, w: 0.3640747}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
+  m_hasFontAssetChanged: 1
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1295430707
@@ -3394,6 +3394,8 @@ MonoBehaviour:
   sceneName: Minigame2
   textManager: {fileID: 1534236584}
   getVariables: {fileID: 1753405074}
+  balanceController: {fileID: 0}
+  totalConnectionsNeeded: 0
 --- !u!4 &1753405073
 Transform:
   m_ObjectHideFlags: 0
@@ -3423,10 +3425,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   interactiveTextManager: {fileID: 1534236584}
   bookGenerator: {fileID: 175133520}
+  bagSwner: {fileID: 0}
+  wireGenerator: {fileID: 0}
   opciones: []
   pregunta: 
   listaPreguntas: []
   listaRespuestas: []
+  pesos: []
   respuestaCorrecta: 
   Curso: 3A
   UsuarioCreador: 1
@@ -7677,11 +7682,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7563012636073509947, guid: f8b8ddb9952c34f43962a1c7bcac0c62, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 48
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 7563012636073509947, guid: f8b8ddb9952c34f43962a1c7bcac0c62, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 48
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 7563012636073509947, guid: f8b8ddb9952c34f43962a1c7bcac0c62, type: 3}
       propertyPath: m_LocalPosition.x
