@@ -1538,8 +1538,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 249.5, y: -132}
-  m_SizeDelta: {x: 16, y: 16}
+  m_AnchoredPosition: {x: 874, y: -448}
+  m_SizeDelta: {x: 91.52, y: 91.52}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1520658970
 MonoBehaviour:
@@ -2260,6 +2260,7 @@ MonoBehaviour:
   textManager: {fileID: 0}
   getVariables: {fileID: 1753405074}
   balanceController: {fileID: 1987416393}
+  totalConnectionsNeeded: 0
 --- !u!4 &1753405073
 Transform:
   m_ObjectHideFlags: 0
@@ -2290,6 +2291,7 @@ MonoBehaviour:
   interactiveTextManager: {fileID: 0}
   bookGenerator: {fileID: 0}
   bagSwner: {fileID: 1229120745}
+  wireGenerator: {fileID: 0}
   opciones: []
   pregunta: 
   listaPreguntas: []
@@ -2334,8 +2336,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 521, y: -27}
-  m_SizeDelta: {x: 16, y: 16}
+  m_AnchoredPosition: {x: 1822, y: -96}
+  m_SizeDelta: {x: 99.45, y: 99.45}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1815952974
 MonoBehaviour:
