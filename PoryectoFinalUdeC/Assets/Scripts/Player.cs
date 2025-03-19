@@ -9,6 +9,7 @@ public class Player : MonoBehaviour
     private bool isFlipped = false; // Track the flip state
     private InteractableObject currentInteractable; // Variable para guardar el objeto interactuable actual
     public bool isMinigameActive = false; // Bandera para controlar si el minijuego está activo
+    public int puntaje { get; set; }
 
     private Collider2D[] playerColliders; // Referencia a los colliders del jugador
 

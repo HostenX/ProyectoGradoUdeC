@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,6 +10,8 @@ public class WireGenerator : MonoBehaviour
     [SerializeField] private Transform answersContainer;    // Contenedor de respuestas
     [SerializeField] private Color questionWireColor;       // Color para cables de preguntas
     [SerializeField] private Color answerWireColor;         // Color para cables de respuestas
+    [SerializeField] private float generationDelay = 0.5f;  // Tiempo entre la generación de cada cable
+    [SerializeField] private float fadeDuration = 0.5f;     // Duración del efecto de fade-in
 
     public void GenerateWires(List<string> questions, List<string> answers)
     {
@@ -31,20 +34,52 @@ public class WireGenerator : MonoBehaviour
         // Desordenar los índices de las respuestas
         Shuffle(answerIndices);
 
-        // Generar cables
+        // Iniciar la generación con efecto fade-in
+        StartCoroutine(GenerateWiresWithTransition(questions, answers, answerIndices));
+    }
+
+    private IEnumerator GenerateWiresWithTransition(List<string> questions, List<string> answers, List<int> answerIndices)
+    {
         for (int i = 0; i < questions.Count; i++)
         {
             // Crear el cable para la pregunta
             GameObject questionWire = Instantiate(questionWirePrefab, questionsContainer);
             var questionComponent = questionWire.GetComponent<Wire>();
             questionComponent.Initialize(questions[i], answers[i], questionWireColor);
+            StartCoroutine(FadeIn(questionWire));
 
             // Crear el cable para la respuesta usando el índice desordenado
             int randomizedIndex = answerIndices[i];
             GameObject answerWire = Instantiate(answerWirePrefab, answersContainer);
             var answerComponent = answerWire.GetComponent<Wire>();
             answerComponent.Initialize(questions[i], answers[randomizedIndex], answerWireColor);
+            StartCoroutine(FadeIn(answerWire));
+
+            // Esperar un tiempo antes de generar el siguiente cable
+            yield return new WaitForSeconds(generationDelay);
         }
+    }
+
+    private IEnumerator FadeIn(GameObject wire)
+    {
+        // Agregar un CanvasGroup si no lo tiene
+        CanvasGroup canvasGroup = wire.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            canvasGroup = wire.AddComponent<CanvasGroup>();
+
+        // Comenzar en opacidad 0
+        canvasGroup.alpha = 0f;
+        float elapsedTime = 0f;
+
+        while (elapsedTime < fadeDuration)
+        {
+            elapsedTime += Time.deltaTime;
+            canvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsedTime / fadeDuration);
+            yield return null;
+        }
+
+        // Asegurar que la opacidad final sea 1
+        canvasGroup.alpha = 1f;
     }
 
     // Método para desordenar una lista de strings en paralelo
