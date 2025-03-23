@@ -26,6 +26,7 @@ public class MinigameController : MonoBehaviour
 
     private void Start()
     {
+        int puntosActuales = puntosBase;
         player = FindObjectOfType<Player>();
         getVariables = FindObjectOfType<GetVariables>();
 
@@ -94,6 +95,9 @@ public class MinigameController : MonoBehaviour
         else
         {
             Debug.Log("Respuesta incorrecta, intenta nuevamente");
+
+            puntosBase = Mathf.Max(0, puntosBase - penalidadPuntos);
+            Debug.Log($"Puntos reducidos. Puntos actuales: {puntosBase}");
             StartCoroutine(ShowErrorEffect());
         }
     }

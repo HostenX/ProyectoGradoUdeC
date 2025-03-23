@@ -33,9 +33,23 @@ public class GetVariables : MonoBehaviour
 
     void Start()
     {
+        // Buscar PlayerData en la escena
+        PlayerData playerData = FindObjectOfType<PlayerData>();
+
+        if (playerData != null)
+        {
+            Curso = playerData.Curso;
+            UsuarioCreador = playerData.TeacherId;
+
+        }
+        else
+        {
+            Debug.LogError("No se encontró PlayerData en la escena.");
+            return;
+        }
+
         StartCoroutine(GetMinijuegoData(Curso, UsuarioCreador, 1, tipoMinijuego));
     }
-
     IEnumerator GetMinijuegoData(string curso, int usuarioCreadorId, int estadoId, string tipoMinijuego)
     {
         string url = $"{apiUrl}?curso={curso}&usuarioCreadorId={usuarioCreadorId}&estadoId={estadoId}&tipoMinijuego={tipoMinijuego}";
