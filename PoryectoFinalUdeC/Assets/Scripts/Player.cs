@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
@@ -9,6 +10,8 @@ public class Player : MonoBehaviour
     private bool isFlipped = false; // Track the flip state
     private InteractableObject currentInteractable; // Variable para guardar el objeto interactuable actual
     public bool isMinigameActive = false; // Bandera para controlar si el minijuego está activo
+    private PlayerData playerData;
+    private string apiUrl = "https://localhost:7193/api/personajes/actualizar-puntaje"; // Endpoint de la API
     public int puntaje { get; set; }
 
     private Collider2D[] playerColliders; // Referencia a los colliders del jugador
@@ -17,6 +20,20 @@ public class Player : MonoBehaviour
     {
         // Obtener todos los colliders 2D del jugador
         playerColliders = GetComponents<Collider2D>();
+        // Buscar PlayerData de manera más robusta
+        playerData = FindObjectOfType<PlayerData>();
+
+        if (playerData == null)
+        {
+            Debug.LogError("No se encontró PlayerData en la escena!");
+            // Puedes crear uno temporalmente para pruebas
+            // GameObject tempObj = new GameObject("TempPlayerData");
+            // playerData = tempObj.AddComponent<PlayerData>();
+        }
+        else
+        {
+            Debug.Log("PlayerData encontrado correctamente");
+        }
     }
 
     private void Update()
@@ -37,12 +54,13 @@ public class Player : MonoBehaviour
             // Apply movement
             transform.position += new Vector3(direction.x, direction.y, 0f) * speed * Time.deltaTime;
 
-            if (Input.GetKeyDown(KeyCode.Z)) // Interactuar con el objeto al presionar "Z"
+            if (Input.GetKeyDown(KeyCode.Z)) // Interactuar con la tecla "Z"
             {
                 Interact();
             }
         }
     }
+
 
     void Interact()
     {
@@ -51,18 +69,36 @@ public class Player : MonoBehaviour
 
         RaycastHit2D hit = Physics2D.Raycast(transform.position, facingDir, 1f);
 
-        if (hit.collider != null && hit.collider.CompareTag("Interactable"))
+        if (hit.collider != null)
         {
-            currentInteractable = hit.collider.GetComponent<InteractableObject>();
-
-            if (currentInteractable != null)
+            if (hit.collider.CompareTag("Interactable")) // Es un objeto interactivo
             {
-                Debug.Log("Se interactuó con un objeto");
-                // Cargar la escena del minijuego de manera aditiva
-                LoadMinigameScene(currentInteractable.minigameSceneName);
+                InteractableObject currentInteractable = hit.collider.GetComponent<InteractableObject>();
+
+                if (currentInteractable != null)
+                {
+                    Debug.Log("Se interactuó con un objeto interactivo.");
+                    LoadMinigameScene(currentInteractable.minigameSceneName);
+                }
+            }
+            else if (hit.collider.CompareTag("NPC")) // Es un NPC
+            {
+                NPC npc = hit.collider.GetComponent<NPC>();
+
+                if (npc != null)
+                {
+                    Debug.Log("Se interactuó con un NPC.");
+                    npc.StartDialog(); // Iniciar el diálogo del NPC
+                }
+            }
+            else if (hit.collider.CompareTag("EndObject")) // Finaliza el minijuego
+            {
+                Debug.Log("Se interactuó con un objeto de finalización.");
+                EnviarPuntajePersonaje();
             }
         }
     }
+
 
     // Método para cargar la escena del minijuego
     void LoadMinigameScene(string sceneName)
@@ -163,4 +199,78 @@ public class Player : MonoBehaviour
             }
         }
     }
+
+    private void EnviarPuntajePersonaje()
+    {
+        if (playerData != null)
+        {
+            StartCoroutine(ActualizarPuntajeAPI(playerData.UsuarioId, playerData.PuntajeActual));
+        }
+        else
+        {
+            Debug.Log("Algo esta mal");
+        }
+    }
+
+    private IEnumerator ActualizarPuntajeAPI(int usuarioId, int nuevoPuntaje)
+    {
+        // Construir la URL correctamente según el endpoint
+        string url = $"https://localhost:7193/api/Personaje/ActualizarPuntaje/{usuarioId}";
+
+        // Crear el cuerpo de la solicitud en formato JSON
+        string jsonBody = nuevoPuntaje.ToString(); // Tu API espera directamente el número en el body
+        byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+        // Log de lo que estamos enviando
+        Debug.Log($"[API REQUEST] Enviando petición a: {url}");
+        Debug.Log($"[API REQUEST] Body enviado: {jsonBody}");
+        Debug.Log($"[API REQUEST] UsuarioID: {usuarioId}, Puntaje: {nuevoPuntaje}");
+
+        using (UnityWebRequest request = new UnityWebRequest(url, "PUT"))
+        {
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            request.downloadHandler = new DownloadHandlerBuffer();
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // Opcional: Agregar timeout
+            request.timeout = 10;
+
+            yield return request.SendWebRequest();
+
+            // Log detallado de la respuesta
+            Debug.Log($"[API RESPONSE] Estado: {request.responseCode}");
+            Debug.Log($"[API RESPONSE] Error: {request.error}");
+            Debug.Log($"[API RESPONSE] Contenido: {request.downloadHandler.text}");
+            Debug.Log($"[API RESPONSE] Headers: {request.GetResponseHeaders()}");
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log("[API SUCCESS] Puntaje actualizado correctamente en la API.");
+                Debug.Log($"[API SUCCESS] Respuesta completa: {request.downloadHandler.text}");
+            }
+            else
+            {
+                Debug.LogError("[API ERROR] Fallo al actualizar puntaje");
+                Debug.LogError($"[API ERROR] Código: {request.responseCode}");
+                Debug.LogError($"[API ERROR] Mensaje: {request.error}");
+                Debug.LogError($"[API ERROR] Respuesta: {request.downloadHandler.text}");
+
+                // Para errores HTTP específicos
+                if (request.responseCode == 404)
+                {
+                    Debug.LogError("[API ERROR 404] Recurso no encontrado - Verifica el usuarioId");
+                }
+                else if (request.responseCode == 400)
+                {
+                    Debug.LogError("[API ERROR 400] Bad Request - Verifica los datos enviados");
+                }
+                else if (request.responseCode == 500)
+                {
+                    Debug.LogError("[API ERROR 500] Error interno del servidor");
+                }
+            }
+        }
+    }
+
+
 }

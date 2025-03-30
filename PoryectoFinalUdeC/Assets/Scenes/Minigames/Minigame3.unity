@@ -2260,7 +2260,12 @@ MonoBehaviour:
   textManager: {fileID: 0}
   getVariables: {fileID: 1753405074}
   balanceController: {fileID: 1987416393}
+  errorBorder: {fileID: 0}
+  successBorder: {fileID: 0}
   totalConnectionsNeeded: 0
+  puntosBase: 0
+  penalidadPuntos: 0
+  apiController: {fileID: 0}
 --- !u!4 &1753405073
 Transform:
   m_ObjectHideFlags: 0
@@ -2290,8 +2295,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   interactiveTextManager: {fileID: 0}
   bookGenerator: {fileID: 0}
-  bagSwner: {fileID: 1229120745}
+  bagSpawner: {fileID: 0}
   wireGenerator: {fileID: 0}
+  minijuegoId: 0
   opciones: []
   pregunta: 
   listaPreguntas: []
@@ -2301,6 +2307,9 @@ MonoBehaviour:
   Curso: 3A
   UsuarioCreador: 1
   tipoMinijuego: Balanza
+  puntosBase: 0
+  penalidadPuntos: 0
+  puntajeActual: 0
 --- !u!1 &1815952972
 GameObject:
   m_ObjectHideFlags: 0
@@ -2385,7 +2394,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1753405072}
         m_TargetAssemblyTypeName: MinigameController, Assembly-CSharp
-        m_MethodName: OnIncompleteButtonPressed
+        m_MethodName: OnExitButtonPressed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
