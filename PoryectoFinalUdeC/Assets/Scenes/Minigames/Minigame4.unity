@@ -6048,6 +6048,7 @@ GameObject:
   - component: {fileID: 1753405073}
   - component: {fileID: 1753405072}
   - component: {fileID: 1753405074}
+  - component: {fileID: 1753405075}
   m_Layer: 0
   m_Name: MinigameController
   m_TagString: Untagged
@@ -6071,9 +6072,12 @@ MonoBehaviour:
   textManager: {fileID: 0}
   getVariables: {fileID: 1753405074}
   balanceController: {fileID: 0}
+  errorBorder: {fileID: 0}
+  successBorder: {fileID: 0}
   totalConnectionsNeeded: 2
   puntosBase: 0
   penalidadPuntos: 0
+  apiController: {fileID: 1753405075}
 --- !u!4 &1753405073
 Transform:
   m_ObjectHideFlags: 0
@@ -6105,6 +6109,7 @@ MonoBehaviour:
   bookGenerator: {fileID: 0}
   bagSpawner: {fileID: 0}
   wireGenerator: {fileID: 247868068}
+  minijuegoId: 0
   opciones: []
   pregunta: 
   listaPreguntas:
@@ -6125,6 +6130,18 @@ MonoBehaviour:
   puntosBase: 0
   penalidadPuntos: 0
   puntajeActual: 0
+--- !u!114 &1753405075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1753405071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8051217f091718e4c88cde551c6335af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1815952972
 GameObject:
   m_ObjectHideFlags: 0
@@ -6209,7 +6226,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1753405072}
         m_TargetAssemblyTypeName: MinigameController, Assembly-CSharp
-        m_MethodName: OnIncompleteButtonPressed
+        m_MethodName: OnExitButtonPressed
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

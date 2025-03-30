@@ -23,12 +23,14 @@ public class MinigameController : MonoBehaviour
     public MinigameAPIController apiController;
     private int usuarioId = 1; // Debe obtenerse dinámicamente según el jugador
     private float tiempoInicio;
+    private PlayerData playerData;
 
     private void Start()
     {
         int puntosActuales = puntosBase;
         player = FindObjectOfType<Player>();
         getVariables = FindObjectOfType<GetVariables>();
+        playerData = FindObjectOfType<PlayerData>();
 
         if (player == null)
         {
@@ -44,6 +46,7 @@ public class MinigameController : MonoBehaviour
             Debug.LogError("No se encontró GetVariables en la escena.");
         }
         tiempoInicio = Time.time;
+        if (playerData == null) Debug.LogError(" ¡No se encontró PlayerData en la escena!");
     }
 
     void VerificarYAsignarPuntos()
@@ -122,6 +125,7 @@ public class MinigameController : MonoBehaviour
         }
     }
 
+
     void HandleMinigameCompletion(bool isCompleted)
     {
         if (player != null)
@@ -131,8 +135,14 @@ public class MinigameController : MonoBehaviour
         }
 
         int tiempoTotal = Mathf.RoundToInt(Time.time - tiempoInicio);
-        if (tiempoTotal < 0) tiempoTotal = 0; // Seguridad para evitar valores negativos
+        if (tiempoTotal < 0) tiempoTotal = 0;
 
+        if (isCompleted && playerData != null)  
+        {
+            playerData.AgregarPuntaje(puntosBase); 
+        }
+
+        // Envía los datos a la API
         if (apiController != null)
         {
             StartCoroutine(apiController.EnviarResultado(usuarioId, getVariables.minijuegoId, puntosBase, tiempoTotal));
@@ -144,6 +154,7 @@ public class MinigameController : MonoBehaviour
 
         SceneManager.UnloadSceneAsync(sceneName);
     }
+
     public bool EvaluarEcuacion(string ecuacion)
     {
         try
@@ -223,5 +234,19 @@ public class MinigameController : MonoBehaviour
             Debug.Log($"Conexiones correctas: {conexionesCorrectas} de {totalConnectionsNeeded}. Intenta de nuevo.");
             StartCoroutine(ShowErrorEffect());
         }
+    }
+
+    public void OnExitButtonPressed()
+    {
+        Debug.Log("Saliendo del minijuego.");
+        // No evalúa resultados, simplemente cierra el minijuego
+        if (player != null)
+        {
+            player.isMinigameActive = false;
+            player.SetPlayerCollidersActive(true);
+        }
+
+        // Descargar la escena del minijuego
+        SceneManager.UnloadSceneAsync(sceneName);
     }
 }

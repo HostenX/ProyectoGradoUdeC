@@ -44,4 +44,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Minigames/Minigame4.unity
     guid: be55e87f39f1aae4caf5951872485bb9
+  - enabled: 1
+    path: Assets/Scenes/Login/TeacherList.unity
+    guid: 85424b902847bbe46a508a506a16f15f
   m_configObjects: {}
