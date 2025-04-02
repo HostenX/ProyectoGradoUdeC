@@ -87,24 +87,7 @@ public class MinigameController : MonoBehaviour
         HandleMinigameResult(false);
     }
 
-    private void HandleMinigameResult(bool isCorrect)
-    {
-        if (isCorrect)
-        {
-            Debug.Log("Minijuego completado.");
-            StartCoroutine(ShowSuccessEffect());
-            HandleMinigameCompletion(true);
-        }
-        else
-        {
-            Debug.Log("Respuesta incorrecta, intenta nuevamente");
-
-            puntosBase = Mathf.Max(0, puntosBase - penalidadPuntos);
-            Debug.Log($"Puntos reducidos. Puntos actuales: {puntosBase}");
-            StartCoroutine(ShowErrorEffect());
-        }
-    }
-
+    
     private IEnumerator ShowErrorEffect()
     {
         if (errorBorder != null)
@@ -120,13 +103,13 @@ public class MinigameController : MonoBehaviour
         if (successBorder != null)
         {
             successBorder.gameObject.SetActive(true);
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(2.5f); // Mostrar el efecto durante los 2.5s completos
             successBorder.gameObject.SetActive(false);
         }
     }
 
 
-    void HandleMinigameCompletion(bool isCompleted)
+    private IEnumerator HandleMinigameCompletionWithDelay(bool isCompleted)
     {
         if (player != null)
         {
@@ -137,12 +120,11 @@ public class MinigameController : MonoBehaviour
         int tiempoTotal = Mathf.RoundToInt(Time.time - tiempoInicio);
         if (tiempoTotal < 0) tiempoTotal = 0;
 
-        if (isCompleted && playerData != null)  
+        if (isCompleted && playerData != null)
         {
-            playerData.AgregarPuntaje(puntosBase); 
+            playerData.AgregarPuntaje(puntosBase);
         }
 
-        // Envía los datos a la API
         if (apiController != null)
         {
             StartCoroutine(apiController.EnviarResultado(usuarioId, getVariables.minijuegoId, puntosBase, tiempoTotal));
@@ -152,7 +134,26 @@ public class MinigameController : MonoBehaviour
             Debug.LogError("No se encontró el MinigameAPIController.");
         }
 
+        // Esperar 2.5 segundos antes de descargar la escena
+        yield return new WaitForSeconds(1);
         SceneManager.UnloadSceneAsync(sceneName);
+    }
+
+    private void HandleMinigameResult(bool isCorrect)
+    {
+        if (isCorrect)
+        {
+            Debug.Log("Minijuego completado.");
+            StartCoroutine(ShowSuccessEffect());
+            StartCoroutine(HandleMinigameCompletionWithDelay(true)); // Usar la versión con delay
+        }
+        else
+        {
+            Debug.Log("Respuesta incorrecta, intenta nuevamente");
+            puntosBase = Mathf.Max(0, puntosBase - penalidadPuntos);
+            Debug.Log($"Puntos reducidos. Puntos actuales: {puntosBase}");
+            StartCoroutine(ShowErrorEffect());
+        }
     }
 
     public bool EvaluarEcuacion(string ecuacion)
@@ -227,14 +228,17 @@ public class MinigameController : MonoBehaviour
         if (conexionesCorrectas >= totalConnectionsNeeded)
         {
             Debug.Log("¡Todas las conexiones son correctas! Minijuego completado.");
-            HandleMinigameResult(true);
+            HandleMinigameResult(true); // Esto ya maneja el efecto de éxito y el cierre con delay
         }
         else
         {
             Debug.Log($"Conexiones correctas: {conexionesCorrectas} de {totalConnectionsNeeded}. Intenta de nuevo.");
-            StartCoroutine(ShowErrorEffect());
+            puntosBase = Mathf.Max(0, puntosBase - penalidadPuntos); // Reducción de puntos por errores
+            Debug.Log($"Puntos reducidos. Puntos actuales: {puntosBase}");
+            StartCoroutine(ShowErrorEffect()); // Muestra el borde rojo
         }
     }
+
 
     public void OnExitButtonPressed()
     {
