@@ -7,7 +7,7 @@ public class NPC : MonoBehaviour
     public Sprite[] npcSprites;
     private SpriteRenderer spriteRenderer;
     private DialogManager dialogManager;
-    private string apiUrl = "https://localhost:7193/api/Apoyo/random";
+    private string apiUrl = "https://gamificationudecapi.azurewebsites.net/api/Apoyo/random";
     private string[] dialogLines;
 
     void Start()
@@ -50,7 +50,7 @@ public class NPC : MonoBehaviour
             string dialogText = request.downloadHandler.text;
 
             // Separar el texto por comas y limpiar espacios
-            dialogLines = dialogText.Split(',');
+            dialogLines = dialogText.Split('-');
             for (int i = 0; i < dialogLines.Length; i++)
             {
                 dialogLines[i] = dialogLines[i].Trim();

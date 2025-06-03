@@ -21,7 +21,7 @@ public class MinigameController : MonoBehaviour
     public int puntosBase;
     public int penalidadPuntos;
     public MinigameAPIController apiController;
-    private int usuarioId = 1; // Debe obtenerse dinámicamente según el jugador
+    public int usuarioId; // Debe obtenerse dinámicamente según el jugador
     private float tiempoInicio;
     private PlayerData playerData;
 
@@ -46,7 +46,22 @@ public class MinigameController : MonoBehaviour
             Debug.LogError("No se encontró GetVariables en la escena.");
         }
         tiempoInicio = Time.time;
+        usuarioId = playerData.UsuarioId;
         if (playerData == null) Debug.LogError(" ¡No se encontró PlayerData en la escena!");
+
+        // Obtener PlayerData de manera más robusta
+        playerData = FindObjectOfType<PlayerData>();
+        if (playerData != null)
+        {
+            usuarioId = playerData.UsuarioId;
+            Debug.Log($"Usuario ID obtenido: {usuarioId}");
+        }
+        else
+        {
+            Debug.LogError("No se encontró PlayerData en la escena!");
+            // Puedes asignar un valor por defecto o manejar el error de otra manera
+            usuarioId = 7770; // O algún valor que indique un error
+        }
     }
 
     void VerificarYAsignarPuntos()
@@ -88,7 +103,7 @@ public class MinigameController : MonoBehaviour
     }
 
     
-    private IEnumerator ShowErrorEffect()
+    public IEnumerator ShowErrorEffect()
     {
         if (errorBorder != null)
         {
@@ -98,7 +113,7 @@ public class MinigameController : MonoBehaviour
         }
     }
 
-    private IEnumerator ShowSuccessEffect()
+    public IEnumerator ShowSuccessEffect()
     {
         if (successBorder != null)
         {
@@ -137,6 +152,14 @@ public class MinigameController : MonoBehaviour
         // Esperar 2.5 segundos antes de descargar la escena
         yield return new WaitForSeconds(1);
         SceneManager.UnloadSceneAsync(sceneName);
+    }
+
+    public void HandleIncorrectConnection()
+    {
+        Debug.Log("Conexión incorrecta.");
+        puntosBase = Mathf.Max(0, puntosBase - penalidadPuntos);
+        Debug.Log($"Puntos reducidos. Puntos actuales: {puntosBase}");
+        StartCoroutine(ShowErrorEffect());
     }
 
     private void HandleMinigameResult(bool isCorrect)
@@ -242,12 +265,27 @@ public class MinigameController : MonoBehaviour
 
     public void OnExitButtonPressed()
     {
-        Debug.Log("Saliendo del minijuego.");
+        
         // No evalúa resultados, simplemente cierra el minijuego
         if (player != null)
         {
             player.isMinigameActive = false;
             player.SetPlayerCollidersActive(true);
+        }
+
+        // Calcular el tiempo total que el jugador estuvo en el minijuego
+        int tiempoTotal = Mathf.RoundToInt(Time.time - tiempoInicio);
+        if (tiempoTotal < 0) tiempoTotal = 0;
+
+        // Enviar registro con puntaje 0 cuando el jugador abandona el minijuego
+        if (apiController != null)
+        {
+            
+            StartCoroutine(apiController.EnviarResultado(usuarioId, getVariables.minijuegoId, 0, tiempoTotal));
+        }
+        else
+        {
+            Debug.LogError("No se encontró el MinigameAPIController.");
         }
 
         // Descargar la escena del minijuego

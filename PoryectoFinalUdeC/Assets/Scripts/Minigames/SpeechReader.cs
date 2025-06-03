@@ -1,15 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using System.Runtime.InteropServices;
 
-public class DialogManager : MonoBehaviour
+public class SpeechReader : MonoBehaviour
 {
-    public GameObject dialogPanel;
-    public TextMeshProUGUI dialogText;
-    private Queue<string> sentences;
+    [SerializeField] private GetVariables getVariables;
 
     [Header("Text-to-Speech Settings")]
     public bool useTTS = true;
@@ -37,66 +33,87 @@ public class DialogManager : MonoBehaviour
 
     void Start()
     {
-        sentences = new Queue<string>();
-        dialogPanel.SetActive(false);
+        // Si no se asignó el componente GetVariables en el inspector, intentar encontrarlo
+        if (getVariables == null)
+        {
+            getVariables = FindObjectOfType<GetVariables>();
+            if (getVariables == null)
+            {
+                Debug.LogError("No se encontró el componente GetVariables");
+                return;
+            }
+        }
+
+        // Suscribirse al evento cuando se completen los datos del minijuego
+        StartCoroutine(WaitForMinijuegoData());
     }
 
-    private void Update()
+    void Update()
     {
         // Actualizar estado de habla desde JavaScript (solo en WebGL)
 #if UNITY_WEBGL && !UNITY_EDITOR
         isSpeaking = IsSpeaking();
 #endif
 
-        if (Input.GetKeyDown(KeyCode.Space) && !isSpeaking)
+        // Añadir control opcional por tecla para repetir la lectura
+        if (Input.GetKeyDown(KeyCode.R) && !isSpeaking)
         {
-            DisplayNextSentence();
+            ReadMinijuegoData();
         }
     }
 
-    public void StartDialog(string[] dialogLines)
+    IEnumerator WaitForMinijuegoData()
     {
-        dialogPanel.SetActive(true);
-        sentences.Clear();
-        foreach (string sentence in dialogLines)
-        {
-            sentences.Enqueue(sentence);
-        }
-        DisplayNextSentence();
+        // Esperar hasta que el minijuegoId sea diferente de 0 (valor por defecto)
+        yield return new WaitUntil(() => getVariables.minijuegoId != 0);
+
+        // Esperar un poco para asegurarse de que todos los datos estén cargados
+        yield return new WaitForSeconds(1.0f);
+
+        // Leer los datos según el tipo de minijuego
+        ReadMinijuegoData();
     }
 
-    public void DisplayNextSentence()
+    public void ReadMinijuegoData()
     {
-        // Si estamos hablando, parar primero
-        if (isSpeaking)
-        {
-            StopSpeech();
-        }
+        if (!useTTS) return;
 
-        if (sentences.Count == 0)
-        {
-            EndDialog();
-            return;
-        }
-
-        string sentence = sentences.Dequeue();
-        dialogText.text = sentence;
-
-        if (useTTS)
-        {
-            SpeakTextUsingAPI(sentence);
-        }
-    }
-
-    public void EndDialog()
-    {
-        dialogPanel.SetActive(false);
+        // Detener cualquier síntesis anterior
         StopSpeech();
+
+        string textToSpeak = "";
+
+        switch (getVariables.tipoMinijuego.ToLower())
+        {
+            case "frase":
+                textToSpeak = getVariables.respuestaCorrecta;
+                break;
+
+            case "conectar":
+                for (int i = 0; i < getVariables.listaPreguntas.Count; i++)
+                {
+                    if (i > 0) textToSpeak += ". ";
+                    textToSpeak += getVariables.listaPreguntas[i] +","+ getVariables.listaRespuestas[i];
+                }
+                break;
+
+
+
+            default:
+                Debug.LogWarning("Tipo de minijuego no reconocido para síntesis de voz: " + getVariables.tipoMinijuego);
+                return;
+        }
+
+        SpeakTextUsingAPI(textToSpeak);
     }
 
     private void SpeakTextUsingAPI(string textToSpeak)
     {
+        if (string.IsNullOrEmpty(textToSpeak)) return;
+
         isSpeaking = true;
+
+        Debug.Log("Sintetizando: " + textToSpeak);
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         // Usar la implementación JavaScript
@@ -140,8 +157,7 @@ public class DialogManager : MonoBehaviour
         // Hablar
         int result = tts.Call<int>("speak", text, 0, null);
         
-        // Esperar un tiempo estimado (aproximado) para que termine de hablar
-        // (2 caracteres por segundo es una aproximación)
+        // Esperar un tiempo estimado para que termine de hablar
         float estimatedDuration = (text.Length / 2.0f) / speechRate;
         yield return new WaitForSeconds(estimatedDuration);
         
@@ -150,13 +166,10 @@ public class DialogManager : MonoBehaviour
         
 #elif UNITY_IOS
         // iOS TTS (requiere plugin)
-        // Este es un código de ejemplo que requeriría un plugin específico para iOS
-        // iOSSpeech.Speak(text, speechRate, speechPitch, speechLanguage);
         yield return new WaitForSeconds(text.Length * 0.05f);
         
 #elif UNITY_STANDALONE_WIN
         // Windows TTS mediante SAPI (requiere interoperabilidad)
-        // Aquí podrías usar System.Speech si tienes acceso a .NET Framework
         yield return new WaitForSeconds(text.Length * 0.05f);
         
 #else
@@ -168,4 +181,35 @@ public class DialogManager : MonoBehaviour
         isSpeaking = false;
     }
 #endif
+
+    // Métodos públicos para usar desde botones u otros scripts
+    public void ReadCorrectAnswer()
+    {
+        if (getVariables != null && !string.IsNullOrEmpty(getVariables.respuestaCorrecta))
+        {
+            SpeakTextUsingAPI(getVariables.respuestaCorrecta);
+        }
+    }
+
+    public void ReadPregunta()
+    {
+        if (getVariables != null && !string.IsNullOrEmpty(getVariables.pregunta))
+        {
+            SpeakTextUsingAPI(getVariables.pregunta);
+        }
+    }
+
+    public void ReadConnections()
+    {
+        if (getVariables != null && getVariables.listaPreguntas != null && getVariables.listaRespuestas != null)
+        {
+            string connectionsText = "";
+            for (int i = 0; i < Mathf.Min(getVariables.listaPreguntas.Count, getVariables.listaRespuestas.Count); i++)
+            {
+                if (i > 0) connectionsText += ". ";
+                connectionsText += getVariables.listaPreguntas[i] + "," + getVariables.listaRespuestas[i];
+            }
+            SpeakTextUsingAPI(connectionsText);
+        }
+    }
 }

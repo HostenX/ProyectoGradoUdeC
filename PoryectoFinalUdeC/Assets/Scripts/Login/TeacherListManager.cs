@@ -11,7 +11,7 @@ public class TeacherListManager : MonoBehaviour
 {
     public Transform contentPanel; // Panel donde se instanciarán los botones
     public GameObject teacherButtonPrefab; // Prefab del botón
-    private string apiUrl = "https://localhost:7193/api/Usuario/teachers-names";
+    private string apiUrl = "https://gamificationudecapi.azurewebsites.net/api/Usuario/teachers-names";
 
     void Start()
     {

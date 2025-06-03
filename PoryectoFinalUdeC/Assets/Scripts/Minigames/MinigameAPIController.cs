@@ -14,7 +14,7 @@ public class RegistroResultadoDTO
 
 public class MinigameAPIController : MonoBehaviour
 {
-    private string apiUrl = "https://localhost:7193/api/resultados/registrar"; // Reemplazar con la URL real
+    private string apiUrl = "https://gamificationudecapi.azurewebsites.net/api/resultados/registrar"; // Reemplazar con la URL real
     private PlayerData playerData;
 
     private void Start()
@@ -51,12 +51,21 @@ public class MinigameAPIController : MonoBehaviour
             {
                 Debug.Log("Resultado enviado con éxito: " + request.downloadHandler.text);
 
-                // Actualizar el puntaje en PlayerData - intentamos encontrarlo nuevamente por si acaso
+                // Siempre usar el usuarioId de PlayerData como prioridad
                 if (playerData == null)
                 {
                     playerData = FindObjectOfType<PlayerData>();
                 }
 
+                if (playerData != null)
+                {
+                    usuarioId = playerData.UsuarioId;
+                    Debug.Log($"Usando UsuarioID de PlayerData: {usuarioId}");
+                }
+                else
+                {
+                    Debug.LogError("No se encontró PlayerData, usando usuarioId proporcionado");
+                }
                 if (playerData != null)
                 {
                     Debug.Log($"Añadiendo {puntaje} puntos al jugador. Puntaje anterior: {playerData.PuntajeActual}");
