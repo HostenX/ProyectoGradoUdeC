@@ -134,6 +134,8 @@ public class Wire : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
             // Detectar conexión con otro objeto
             GameObject connectedObject = DetectConnection(endPosition);
 
+            // Obtener referencia al MinigameController
+            MinigameController minigameController = FindObjectOfType<MinigameController>();
 
             if (connectedObject != null)
             {
@@ -146,7 +148,6 @@ public class Wire : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
                         Debug.Log("Conexión correcta.");
 
                         // Notificar al controlador
-                        MinigameController minigameController = FindObjectOfType<MinigameController>();
                         if (minigameController != null)
                         {
                             minigameController.wireConnections[this] = connectedObject; // Agregar al diccionario
@@ -155,19 +156,30 @@ public class Wire : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHand
                     else
                     {
                         Debug.LogWarning("Conexión incorrecta. Inténtalo de nuevo.");
-                        // Opcionalmente deshabilitar la línea
+                        // Deshabilitar la línea
                         _lineRenderer.enabled = false;
+
+                        // Llamar al proceso de respuesta incorrecta en el MinigameController
+                        if (minigameController != null)
+                        {
+                            minigameController.HandleIncorrectConnection();
+                        }
                     }
                 }
             }
             else
             {
                 Debug.Log("No se detectó conexión.");
-                _lineRenderer.enabled = false; // Opcional: deshabilitar la línea
+                _lineRenderer.enabled = false; // Deshabilitar la línea
+
+                // También considerar esto como un intento fallido
+                if (minigameController != null)
+                {
+                    minigameController.HandleIncorrectConnection();
+                }
             }
         }
     }
-
     private bool IsConnectionValid(Wire connectedWire)
     {
         

@@ -11,7 +11,13 @@ public class Player : MonoBehaviour
     private InteractableObject currentInteractable; // Variable para guardar el objeto interactuable actual
     public bool isMinigameActive = false; // Bandera para controlar si el minijuego está activo
     private PlayerData playerData;
-    private string apiUrl = "https://localhost:7193/api/personajes/actualizar-puntaje"; // Endpoint de la API
+    private string apiUrl = "https://gamificationudecapi.azurewebsites.net/api/personajes/actualizar-puntaje"; // Endpoint de la API
+    public GameObject introUIPanel; // Asignar el panel desde el editor
+    public float introDuration = 45f; // Duración de la intro
+    private bool introActive = true;
+    public GameObject outroUIPanel; // Arrástralo desde el editor
+    private bool isOutroActive = false;
+
     public int puntaje { get; set; }
 
     private Collider2D[] playerColliders; // Referencia a los colliders del jugador
@@ -34,10 +40,31 @@ public class Player : MonoBehaviour
         {
             Debug.Log("PlayerData encontrado correctamente");
         }
+        // Mostrar la pantalla de introducción
+        if (introUIPanel != null)
+        {
+            introUIPanel.SetActive(true);
+            isMinigameActive = true; // Bloquea el movimiento
+            StartCoroutine(EsconderIntroDespuesDeTiempo(introDuration));
+        }
     }
 
     private void Update()
     {
+        if (introActive && Input.anyKeyDown)
+        {
+            introUIPanel.SetActive(false);
+            isMinigameActive = false;
+            introActive = false;
+        }
+
+        if (isOutroActive && Input.anyKeyDown)
+        {
+            Application.Quit();
+            Debug.Log("El juego se cerraría aquí (solo funciona en build).");
+        }
+
+
         // Solo permitimos movimiento si no hay un minijuego activo
         if (!isMinigameActive)
         {
@@ -67,7 +94,7 @@ public class Player : MonoBehaviour
         Vector3 facingDir = new Vector3(animator.GetFloat("horizontal"), animator.GetFloat("vertical"), 0f);
         Debug.DrawRay(transform.position, facingDir, Color.red, 0.1f);
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, facingDir, 1f);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, facingDir, 5f);
 
         if (hit.collider != null)
         {
@@ -95,6 +122,7 @@ public class Player : MonoBehaviour
             {
                 Debug.Log("Se interactuó con un objeto de finalización.");
                 EnviarPuntajePersonaje();
+                MostrarOutro();
             }
         }
     }
@@ -215,7 +243,7 @@ public class Player : MonoBehaviour
     private IEnumerator ActualizarPuntajeAPI(int usuarioId, int nuevoPuntaje)
     {
         // Construir la URL correctamente según el endpoint
-        string url = $"https://localhost:7193/api/Personaje/ActualizarPuntaje/{usuarioId}";
+        string url = $"https://gamificationudecapi.azurewebsites.net/api/Personaje/ActualizarPuntaje/{usuarioId}";
 
         // Crear el cuerpo de la solicitud en formato JSON
         string jsonBody = nuevoPuntaje.ToString(); // Tu API espera directamente el número en el body
@@ -271,6 +299,27 @@ public class Player : MonoBehaviour
             }
         }
     }
+
+    IEnumerator EsconderIntroDespuesDeTiempo(float tiempo)
+    {
+        yield return new WaitForSeconds(tiempo);
+        if (introUIPanel != null)
+        {
+            introUIPanel.SetActive(false);
+            isMinigameActive = false;
+            introActive = false;
+        }
+    }
+
+    public void MostrarOutro()
+{
+    if (outroUIPanel != null)
+    {
+        outroUIPanel.SetActive(true);
+        isOutroActive = true;
+        isMinigameActive = true; // Bloquea movimiento
+    }
+}
 
 
 }

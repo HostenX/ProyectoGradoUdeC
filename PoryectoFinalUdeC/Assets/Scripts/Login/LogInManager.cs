@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using TMPro;
 using UnityEngine.SceneManagement;
+using System.Runtime.InteropServices;
 
 public class LoginManager : MonoBehaviour
 {
@@ -15,12 +16,81 @@ public class LoginManager : MonoBehaviour
     [SerializeField] private Button loginButton;
     [SerializeField] private TextMeshProUGUI feedbackText;
 
-    private string loginUrl = "https://localhost:7193/api/Usuario/login";
+    private string loginUrl = "https://gamificationudecapi.azurewebsites.net/api/Usuario/login";
+
+    // Importamos la función JavaScript que verificará el localStorage
+    [DllImport("__Internal")]
+    private static extern string GetLocalStorageItem(string key);
 
     void Start()
     {
+        // Configuración inicial de la interfaz
         passwordField.contentType = TMP_InputField.ContentType.Password;
         loginButton.onClick.AddListener(() => StartCoroutine(LoginUser()));
+
+        // Intentar auto-login al iniciar
+        StartCoroutine(CheckForAutoLogin());
+    }
+
+    IEnumerator CheckForAutoLogin()
+    {
+        // Solo en WebGL podemos acceder al localStorage
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            // Intentamos obtener los datos de usuario del localStorage
+            string userData = GetLocalStorageItem("user");
+
+            if (!string.IsNullOrEmpty(userData))
+            {
+                Debug.Log("Datos encontrados en localStorage: " + userData);
+
+                bool loginSuccess = false;
+
+                // Movemos el try-catch fuera de la lógica de yield
+                try
+                {
+                    // Parseamos los datos JSON
+                    var userInfo = JsonConvert.DeserializeObject<UserInfo>(userData);
+
+                    // Guardamos los datos del usuario en PlayerPrefs
+                    PlayerPrefs.SetString("Token", userInfo.token);
+                    PlayerPrefs.SetInt("UsuarioId", userInfo.id);
+                    PlayerPrefs.SetString("NombreUsuario", userInfo.nombreUsuario);
+                    PlayerPrefs.SetInt("RolId", userInfo.rolId);
+                    PlayerPrefs.SetString("Curso", userInfo.curso); // Añadir esta línea
+
+                    // No tenemos información sobre el curso en los datos de localStorage
+                    PlayerPrefs.Save();
+
+                    feedbackText.text = "Sesión recuperada automáticamente.";
+                    Debug.Log("Auto-login exitoso para: " + userInfo.nombreUsuario);
+
+                    loginSuccess = true;
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError("Error al procesar datos de localStorage: " + e.Message);
+                    feedbackText.text = "Error al recuperar sesión.";
+                }
+
+                if (loginSuccess)
+                {
+                    // Esperamos un momento para mostrar el mensaje antes de cambiar de escena
+                    yield return new WaitForSeconds(1.0f);
+
+                    // Cargamos la escena siguiente
+                    SceneManager.LoadScene("TeacherList");
+                }
+            }
+            else
+            {
+                Debug.Log("No se encontraron datos de usuario en localStorage.");
+            }
+        }
+        else
+        {
+            Debug.Log("Auto-login solo disponible en WebGL.");
+        }
     }
 
     IEnumerator LoginUser()
@@ -108,3 +178,12 @@ public class LoginResponse
     public string token;
 }
 
+// Clase para deserializar los datos del localStorage
+public class UserInfo
+{
+    public string nombreUsuario;
+    public int rolId;
+    public string token;
+    public int id;
+    public string curso; // Añadir esta propiedad
+}

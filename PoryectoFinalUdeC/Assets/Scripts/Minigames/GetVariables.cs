@@ -29,7 +29,7 @@ public class GetVariables : MonoBehaviour
     public int penalidadPuntos;
     public int puntajeActual;
 
-    private string apiUrl = "https://localhost:7193/api/Minijuego/GetMinijuegosFiltrados";
+    private string apiUrl = "https://gamificationudecapi.azurewebsites.net/api/Minijuego/GetMinijuegosFiltrados";
 
     void Start()
     {
